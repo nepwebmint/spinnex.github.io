@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spinnex - Interactive Weighted Wheel</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Canvas Confetti: Robust path for winner animation -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Base styles are DARK MODE, using a subtle gradient background */
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #0f172a; /* Fallback for older browsers */
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+            color: white;
+            min-height: 100vh; 
+            transition: all 0.5s ease;
+            display: flex; /* Flex container for full height layout */
+            flex-direction: column;
+        }
+
+        /* --- FULL HEIGHT LAYOUT --- */
+        #mainContainer {
+            display: flex;
+            flex-grow: 1;
+            overflow: hidden; /* Prevent body scroll */
+        }
+        
+        #wheelSection {
+            flex: 1; /* Wheel takes all available horizontal space */
+            min-height: 50vh; /* Minimum height for wheel in landscape mobile */
+            max-height: 100vh; 
+            overflow-y: auto; /* Allow scrolling if content is too large (rare) */
+            padding-bottom: 50px; /* Extra padding for bottom visibility */
+        }
+
+        /* --- LIGHT MODE STYLES IMPROVED (Wheel of Names inspired) --- */
+        .light-mode {
+            background: #f1f5f9; 
+            background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 50%, #c7d2fe 100%);
+            color: #1e293b; 
+        }
+
+        /* Glass is now defined differently for light mode sections */
+        .glass {
+            background: rgba(255, 255, 255, 0.07);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.5s ease;
+        }
+
+        .light-mode .glass {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid #e5e7eb; /* Light gray border */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Settings Panel in Light Mode (Wheels of Names Style) */
+        #settingsSection {
+            /* Dark mode style is already good */
+        }
+        .light-mode #settingsSection {
+            background: #ffffff; /* Pure white background for controls */
+            border-left: 1px solid #e5e7eb; 
+            box-shadow: -5px 0 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Entries Container in Light Mode */
+        .light-mode #entriesContainer {
+            background: #f9fafb !important; /* Very light background for container */
+            border-color: #d1d5db !important;
+        }
+        .light-mode .entry-item-bg {
+            background-color: #ffffff !important; 
+            border-color: #e5e7eb !important;
+        }
+        .light-mode .entry-input {
+            color: #1e293b !important; 
+            background-color: #f9fafb !important;
+            border-color: #e5e7eb !important;
+        }
+
+        /* Custom Scrollbar */
+        .custom-scroll::-webkit-scrollbar { width: 8px; }
+        .custom-scroll::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
+
+        .light-mode .custom-scroll::-webkit-scrollbar-track { background: #f9fafb; }
+        .light-mode .custom-scroll::-webkit-scrollbar-thumb { background: #d1d5db; }
+        .light-mode .custom-scroll::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
+
+        /* Wheel Pointer Triangle - SHARP AND STATIC */
+        .pointer-triangle {
+            width: 0; 
+            height: 0; 
+            border-top: 25px solid transparent; 
+            border-bottom: 25px solid transparent;
+            border-right: 45px solid white; 
+            filter: drop-shadow(-6px 0 6px rgba(0,0,0,0.5)); 
+            z-index: 20;
+            position: absolute;
+            right: -53px; 
+            top: 50%;
+            transform: translateY(-50%); 
+            transition-property: border-right-color, filter;
+            transition-duration: 0.1s, 0.5s;
+        }
+        .light-mode .pointer-triangle {
+            border-right: 45px solid #1e293b; 
+        }
+
+        /* Spin Button specific styles */
+        #spinBtn {
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 0 40px rgba(255, 255, 255, 0.3);
+        }
+        #spinBtn:active {
+            transform: scale(0.95) translate(-50%, -50%); 
+        }
+        .light-mode #spinBtn {
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Enhanced Modal Animation (Bigger Pop and Bounce) */
+        @keyframes bounceIn {
+            0% { transform: scale(0.6); opacity: 0; }
+            50% { transform: scale(1.1); opacity: 1; }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); }
+        }
+        
+        .winner-modal-content {
+            animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            background-color: #1e293b; 
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .light-mode .winner-modal-content {
+            background-color: #ffffff; 
+            border: 1px solid #cbd5e1;
+            color: #1e293b;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Responsive Layout for Settings */
+        @media (min-width: 1024px) {
+            #settingsSection {
+                width: 380px; /* Fixed width for desktop settings panel */
+                min-width: 380px; 
+                transition: transform 0.3s ease-in-out;
+            }
+            .settings-hidden {
+                transform: translateX(100%);
+            }
+            #wheelSection {
+                max-width: calc(100% - 380px); /* Wheel takes remaining width */
+            }
+        }
+        
+        /* Mobile: Settings is full width at the bottom */
+        @media (max-width: 1023px) {
+            #mainContainer {
+                flex-direction: column;
+            }
+            #settingsSection {
+                width: 100%;
+                transition: all 0.3s ease-in-out;
+            }
+            .settings-hidden {
+                transform: translateY(100%);
+                height: 0 !important;
+                padding-top: 0 !important;
+                padding-bottom: 0 !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <!-- Navbar -->
+    <nav class="w-full px-6 py-4 flex justify-between items-center glass z-30 sticky top-0">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-violet-600 flex items-center justify-center text-white font-black text-2xl shadow-lg light-mode:shadow-pink-200">S</div>
+            <h1 class="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-pink-300 to-violet-400 drop-shadow-lg uppercase light-mode:from-pink-600 light-mode:to-violet-800">SPINNEX</h1>
+        </div>
+        <div class="flex gap-4">
+            <!-- Dark/Light Mode Toggle -->
+            <button id="modeToggleBtn" onclick="toggleDarkMode()" class="py-2 px-3 rounded-lg bg-white/10 hover:bg-white/20 text-gray-300 light-mode:bg-gray-200 light-mode:hover:bg-gray-300 light-mode:text-gray-700 transition flex items-center gap-2 text-sm font-medium btn-fancy">
+                <svg id="modeIcon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+            </button>
+
+            <!-- Hide Settings Button -->
+            <button id="hideSettingsBtn" onclick="toggleSettings()" class="py-2 px-3 rounded-lg bg-white/10 hover:bg-white/20 text-gray-300 light-mode:bg-gray-200 light-mode:hover:bg-gray-300 light-mode:text-gray-700 transition flex items-center gap-2 text-sm font-medium btn-fancy">
+                <svg id="settingsIcon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.78 1.48a2 2 0 0 0 .73 2.73l.15.08a2 2 0 0 1 1 1.73v.2a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.78-1.48a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.73v-.2A2 2 0 0 0 12.22 2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                <span id="settingsText">Hide Settings</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content Container (Flex Row for Desktop, Flex Col for Mobile) -->
+    <main id="mainContainer" class="flex-grow flex flex-col lg:flex-row relative">
+        
+        <!-- 1. LEFT SECTION: The Wheel (Takes up most of the space) -->
+        <div id="wheelSection" class="wheel-area flex items-center justify-center p-6 sm:p-8 lg:p-12 relative z-10 lg:order-1">
+             <div class="relative w-full aspect-square max-w-[500px] flex items-center justify-center group">
+                
+                <!-- Wheel Canvas -->
+                <div class="relative w-full h-full rounded-full shadow-2xl shadow-black/50 light-mode:shadow-xl light-mode:shadow-gray-400/50 border-8 border-white/5 light-mode:border-gray-300 glass">
+                    <canvas id="wheelCanvas" class="w-full h-full rounded-full"></canvas>
+                </div>
+
+                <!-- Static Pointer -->
+                <div id="wheelPointer" class="pointer-triangle absolute"></div>
+                
+                <!-- Spin Button/Image Container (Center Hub) -->
+                <button id="spinBtn" onclick="spinWheel()" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-24 h-24 md:w-28 md:h-28 rounded-full bg-gradient-to-br from-white to-gray-300 light-mode:bg-gradient-to-br light-mode:from-gray-100 light-mode:to-white shadow-[0_0_40px_rgba(255,255,255,0.3)] light-mode:shadow-[0_0_40px_rgba(0,0,0,0.1)] z-20 flex items-center justify-center focus:outline-none overflow-hidden group">
+                    <div id="centerHub" class="w-full h-full rounded-full flex items-center justify-center relative overflow-hidden">
+                        <span id="spinText" class="text-gray-900 font-bold text-xl md:text-2xl tracking-wider uppercase">GO!</span>
+                        <img id="centerImage" src="" alt="Custom Wheel Center Image" style="display:none;">
+                    </div>
+                </button>
+            </div>
+        </div>
+
+        <!-- 2. RIGHT SECTION: Controls/Settings Panel -->
+        <div id="settingsSection" class="w-full lg:w-[380px] bg-slate-900/50 border-t border-white/10 light-mode:bg-white light-mode:border-gray-200 p-6 z-20 transition-all duration-300 lg:order-2 lg:h-full lg:overflow-y-auto custom-scroll">
+            <div class="max-w-4xl mx-auto lg:max-w-none">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-gray-200 light-mode:text-gray-900">Weighted Entries</h2>
+                    <p class="text-sm text-gray-400 mt-1 light-mode:text-gray-600">Adjust the weight of each entry to control its chance.</p>
+                </div>
+                
+                <!-- Controls/Summary Panel -->
+                <div class="flex flex-col gap-6">
+                    <!-- Total Weight Summary -->
+                    <div class="glass p-4 rounded-xl shadow-md text-center light-mode:shadow-lg light-mode:bg-gray-50/80">
+                        <p class="text-lg font-semibold text-gray-300 light-mode:text-gray-600">Total Entries / Total Weight</p>
+                        <div id="counter" class="text-3xl font-extrabold mt-1 bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-sky-400 light-mode:from-green-600 light-mode:to-sky-800"></div>
+                        <p class="text-xs text-red-300 light-mode:text-red-600 mt-2 font-medium" id="limitMessage" style="display:none;">
+                            Max weight reached. Reduce others to increase this entry.
+                        </p>
+                    </div>
+                    
+                    <button onclick="addEntry()" class="w-full py-3 rounded-xl text-md font-bold text-white btn-fancy bg-gradient-to-r from-emerald-500 to-sky-600 hover:from-emerald-400 hover:to-sky-500 transition shadow-lg shadow-emerald-900/50 flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        Add New Entry
+                    </button>
+
+                    <!-- Dynamic Entries List Container -->
+                    <div id="entriesContainer" class="flex-grow max-h-[50vh] lg:max-h-none h-auto bg-black/20 light-mode:bg-white/50 border border-white/10 light-mode:border-gray-300 rounded-xl p-3 text-white light-mode:text-gray-900 custom-scroll overflow-y-auto space-y-2">
+                        <!-- Entries are dynamically inserted here by JavaScript -->
+                    </div>
+                    
+                    <!-- Center Image Control Section -->
+                    <div class="glass p-4 rounded-xl flex flex-col gap-3 light-mode:bg-gray-50/80">
+                        <h3 class="text-sm font-semibold text-gray-300 light-mode:text-gray-600 uppercase tracking-wider">Wheel Customization</h3>
+                        
+                        <input type="file" id="fileInput" accept="image/*" onchange="handleImageUpload(event)" 
+                            class="w-full text-sm text-gray-400 light-mode:text-gray-700
+                            file:mr-4 file:py-2 file:px-4
+                            file:rounded-full file:border-0
+                            file:text-sm file:font-semibold
+                            file:bg-violet-500 file:text-white
+                            hover:file:bg-violet-600
+                            transition duration-150">
+                        
+                        <button onclick="clearCenterImage()" class="w-full py-2 rounded-xl text-xs font-semibold text-red-400 hover:text-white transition bg-red-900/50 light-mode:bg-red-100 light-mode:text-red-600 light-mode:hover:bg-red-200 btn-fancy">
+                            Clear Center Image
+                        </button>
+                    </div>
+                    
+                    <!-- Utility Buttons -->
+                    <div class="flex gap-3 justify-center">
+                        <button onclick="shuffleNames()" class="flex-1 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-gray-300 light-mode:bg-gray-200 light-mode:hover:bg-gray-300 light-mode:text-gray-700 transition flex items-center justify-center gap-2 font-medium text-sm btn-fancy" title="Shuffle Display Order">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="m15 15-3 3-3-3"/><path d="m12 18V9"/></svg>
+                            Shuffle
+                        </button>
+                        <button onclick="sortNames()" class="flex-1 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-gray-300 light-mode:bg-gray-200 light-mode:hover:bg-gray-300 light-mode:text-gray-700 transition flex items-center justify-center gap-2 font-medium text-sm btn-fancy" title="Sort A-Z">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12h10"/><path d="M11 18h10"/><path d="M19 5h-7c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h7c1.1 0 2-.9-2-2V7c0-1.1-.9-2-2-2Z"/><path d="M6 8v10"/><path d="m3 10 3-2 3 2"/></svg>
+                            Sort A-Z
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Winner Modal Overlay -->
+    <div id="winnerModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="winner-modal-content relative rounded-xl p-6 md:p-10 max-w-lg w-[90%] text-center shadow-2xl">
+            <!-- Close Button with Text -->
+            <button onclick="closeModal()" class="absolute top-3 right-3 py-1 px-3 rounded-lg text-sm font-semibold text-gray-400 hover:text-pink-500 transition bg-white/10 light-mode:bg-gray-100 light-mode:text-gray-700 light-mode:hover:bg-gray-200 btn-fancy">
+                Close
+            </button>
+            
+            <h3 class="text-gray-400 text-sm uppercase tracking-widest mb-4">🎉 WE HAVE A WINNER! 🎉</h3>
+            <div class="text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-violet-400 light-mode:from-pink-600 light-mode:to-violet-800 mb-6 p-2" id="winnerText">
+                Winner Name
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Configuration ---
+        const colors = [
+            '#F43F5E', '#8B5CF6', '#0EA5E9', '#10B981', '#F59E0B', // Pink, Violet, Sky, Emerald, Amber
+            '#EC4899', '#6366F1', '#3B82F6', '#EF4444', '#A855F7', // Rose, Indigo, Blue, Red, Purple
+            '#F97316', '#22C55E', '#60A5FA', '#BE185D', '#4C1D95'  // Orange, Green, Light Blue, Dark Pink, Deep Violet
+        ];
+        
+        // --- State ---
+        let names = [
+            { id: 1, name: 'Adventure', weight: 5 },
+            { id: 2, name: 'Rest Day', weight: 1 },
+            { id: 3, name: 'Workout', weight: 2 },
+            { id: 4, name: 'Creative Project', weight: 5 },
+            { id: 5, name: 'Reading', weight: 2 },
+        ];
+        let nextId = names.length + 1;
+        let totalWeight = 0;
+        let currentRotation = 0; 
+        let isSpinning = false;
+        let animationFrameId = null;
+        let spinVelocity = 0;
+        let isSettingsVisible = true;
+        let isDarkMode = true;
+        let customImageURL = null;
+
+        
+        // --- Audio State (Self-Contained Web Audio API) ---
+        let audioContext;
+        let spinNoiseOscillators = [];
+        let winClapOscillators = [];
+        let isSpinSoundPlaying = false;
+        
+        // --- DOM Elements ---
+        const canvas = document.getElementById('wheelCanvas');
+        const ctx = canvas.getContext('2d');
+        const entriesContainer = document.getElementById('entriesContainer');
+        const counter = document.getElementById('counter');
+        const spinBtn = document.getElementById('spinBtn');
+        const modal = document.getElementById('winnerModal');
+        const winnerText = document.getElementById('winnerText');
+        const settingsSection = document.getElementById('settingsSection');
+        const settingsText = document.getElementById('settingsText');
+        const settingsIcon = document.getElementById('settingsIcon');
+        const pointer = document.getElementById('wheelPointer'); 
+        const body = document.body;
+        const modeIcon = document.getElementById('modeIcon');
+        const centerImage = document.getElementById('centerImage');
+        const spinText = document.getElementById('spinText');
+        const fileInput = document.getElementById('fileInput');
+        const limitMessage = document.getElementById('limitMessage');
+
+        // --- Dark/Light Mode Control ---
+        function toggleDarkMode() {
+            isDarkMode = !isDarkMode;
+            updateMode();
+            localStorage.setItem('darkMode', isDarkMode);
+            drawWheel(); 
+            renderEntries(); // Re-render entries to apply light mode CSS
+        }
+
+        function updateMode() {
+            if (isDarkMode) {
+                body.classList.remove('light-mode');
+                modeIcon.innerHTML = '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>'; // Moon icon
+                // Pointer color is handled by the general CSS in dark mode
+            } else {
+                body.classList.add('light-mode');
+                modeIcon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>'; // Sun icon
+                // Pointer color is handled by the general CSS in light mode
+            }
+        }
+
+
+        // --- Audio Setup and Control (Enhanced Web Audio API) ---
+        function initAudio() {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) {
+                console.warn("Web Audio API not supported:", e);
+            }
+        }
+        function createSpinSoundSource() {
+            if (!audioContext) return;
+            
+            // Create multiple sources for a richer sound
+            for (let i = 0; i < 3; i++) {
+                const oscillator = audioContext.createOscillator();
+                const noise = audioContext.createBufferSource();
+                const gainNode = audioContext.createGain();
+                
+                // 1. Oscillator (Click/Tone)
+                oscillator.type = i === 0 ? 'sine' : 'square';
+                oscillator.frequency.setValueAtTime(40 + i * 10, audioContext.currentTime);
+                oscillator.start(0);
+
+                // 2. Noise (Hissing/Spinning)
+                const bufferSize = audioContext.sampleRate * 0.5;
+                const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+                const output = buffer.getChannelData(0);
+                for (let j = 0; j < bufferSize; j++) {
+                    output[j] = Math.random() * 2 - 1;
+                }
+                noise.buffer = buffer;
+                noise.loop = true;
+                noise.start(0);
+
+                // 3. Gain/Volume
+                gainNode.gain.setValueAtTime(0.01 + (i * 0.005), audioContext.currentTime);
+                
+                // Connect
+                oscillator.connect(gainNode);
+                noise.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                spinNoiseOscillators.push({ oscillator, noise, gainNode });
+            }
+        }
+
+        function playSpinSound() {
+            if (!audioContext) return;
+            if (audioContext.state !== 'running') audioContext.resume();
+
+            // Clear previous sources
+            stopSpinSound();
+            spinNoiseOscillators = [];
+            createSpinSoundSource();
+            isSpinSoundPlaying = true;
+        }
+
+        function stopSpinSound() {
+            spinNoiseOscillators.forEach(node => {
+                try {
+                    const now = audioContext.currentTime;
+                    // Fade out the gain for a smooth stop
+                    node.gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.5); 
+                    node.oscillator.stop(now + 0.5);
+                    node.noise.stop(now + 0.5);
+                } catch (e) {}
+            });
+            isSpinSoundPlaying = false;
+            spinNoiseOscillators = [];
+        }
+
+        function updateSpinSoundRate(velocity) {
+            if (spinNoiseOscillators.length > 0 && audioContext) {
+                 const rate = 0.5 + Math.min(3.0, velocity * 4);
+                 spinNoiseOscillators.forEach(node => {
+                    // Update playback rate of the noise for a doppler-like effect
+                    node.noise.playbackRate.setValueAtTime(rate * 0.5, audioContext.currentTime);
+                    // Update oscillator frequency slightly
+                    node.oscillator.frequency.setValueAtTime(40 * rate, audioContext.currentTime);
+                 });
+            }
+        }
+
+        function playWinSound() {
+            if (!audioContext || audioContext.state !== 'running') return;
+            
+            // Richer win sound (Chime + Clap)
+            for(let i = 0; i < 4; i++) {
+                const now = audioContext.currentTime;
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.type = 'sawtooth'; 
+                oscillator.frequency.setValueAtTime(500 + i * 200, now + i * 0.05); // Chime frequencies
+                gainNode.gain.setValueAtTime(0.3, now + i * 0.05); 
+                gainNode.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.05 + 0.2); 
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                oscillator.start(now + i * 0.05);
+                oscillator.stop(now + i * 0.05 + 0.2);
+            }
+        }
+
+        // --- Settings Toggle ---
+        function toggleSettings() {
+            isSettingsVisible = !isSettingsVisible;
+            if (window.innerWidth >= 1024) { // Desktop
+                if (isSettingsVisible) {
+                    settingsSection.classList.remove('settings-hidden');
+                    settingsText.innerText = 'Hide Settings';
+                    settingsIcon.innerHTML = '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.78 1.48a2 2 0 0 0 .73 2.73l.15.08a2 2 0 0 1 1 1.73v.2a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.78-1.48a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.73v-.2A2 2 0 0 0 12.22 2z"></path><circle cx="12" cy="12" r="3"></circle>'; 
+                } else {
+                    settingsSection.classList.add('settings-hidden');
+                    settingsText.innerText = 'Show Settings';
+                    settingsIcon.innerHTML = '<path d="M9.8 17.2a1.8 1.8 0 0 0 2.55 0L17 12.55a1.8 1.8 0 0 0 0-2.55L14.45 7.4a1.8 1.8 0 0 0-2.55 0L7.4 10a1.8 1.8 0 0 0 0 2.55zM6 12s2-4 6-4 6 4 6 4-2 4-6 4-6-4-6-4Z"/><circle cx="12" cy="12" r="3"/>'; 
+                }
+            } else { // Mobile
+                if (isSettingsVisible) {
+                    settingsSection.classList.remove('settings-hidden');
+                    settingsSection.style.height = 'auto'; // Re-enable auto-height
+                    settingsText.innerText = 'Hide Settings';
+                    settingsIcon.innerHTML = '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.78 1.48a2 2 0 0 0 .73 2.73l.15.08a2 2 0 0 1 1 1.73v.2a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.78-1.48a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.73v-.2A2 2 0 0 0 12.22 2z"></path><circle cx="12" cy="12" r="3"></circle>'; 
+                } else {
+                    settingsSection.classList.add('settings-hidden');
+                    settingsSection.style.height = '0px'; // Force height to 0 for smoother hiding
+                    settingsText.innerText = 'Show Settings';
+                    settingsIcon.innerHTML = '<path d="M9.8 17.2a1.8 1.8 0 0 0 2.55 0L17 12.55a1.8 1.8 0 0 0 0-2.55L14.45 7.4a1.8 1.8 0 0 0-2.55 0L7.4 10a1.8 1.8 0 0 0 0 2.55zM6 12s2-4 6-4 6 4 6 4-2 4-6 4-6-4-6-4Z"/><circle cx="12" cy="12" r="3"/>'; 
+                }
+            }
+        }
+
+        // --- Initialization ---
+        function init() {
+            // Load preferred mode
+            const storedMode = localStorage.getItem('darkMode');
+            if (storedMode !== null) {
+                isDarkMode = storedMode === 'true';
+            }
+            updateMode();
+
+            // Load custom image if available
+            const storedImage = localStorage.getItem('customImageURL');
+            if (storedImage) {
+                setCenterImage(storedImage);
+                }
+
+            // Must resize canvas before drawing
+            resizeCanvas();
+            initAudio(); 
+            
+            window.addEventListener('resize', () => {
+                resizeCanvas();
+                drawWheel();
+                toggleSettings(); // Re-evaluate settings toggle on resize
+            });
+            updateState();
+        }
+
+        // --- Image Handling (unchanged) ---
+        function handleImageUpload(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    setCenterImage(event.target.result);
+                    localStorage.setItem('customImageURL', event.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        function clearCenterImage() {
+            customImageURL = null;
+            centerImage.src = '';
+            centerImage.style.display = 'none';
+            spinText.style.display = 'block';
+            localStorage.removeItem('customImageURL');
+            fileInput.value = ''; 
+        }
+
+        function setCenterImage(url) {
+            customImageURL = url;
+            centerImage.src = url;
+            centerImage.style.display = 'block';
+            spinText.style.display = 'none';
+        }
+
+        // --- Data Management and Weight Limits ---
+        function updateState() {
+            // 1. Ensure minimum weight of 1
+            names.forEach(entry => entry.weight = Math.max(1, entry.weight));
+            
+            totalWeight = names.reduce((sum, entry) => sum + entry.weight, 0);
+            counter.innerText = `${names.length} entr${names.length === 1 ? 'y' : 'ies'} / W: ${totalWeight}`;
+            
+            // 2. Hide global limit message
+            limitMessage.style.display = 'none'; 
+            
+            renderEntries();
+            drawWheel();
+        }
+        
+        // Dynamic Maximum Weight Calculation:
+        // An entry's weight is capped when increasing it would leave
+        // the sum of all *other* entries below the minimum weight (1).
+        function getMaxWeight(currentIndex) {
+            if (names.length === 1) return Infinity; 
+            
+            // Sum of weights of all entries EXCEPT the current one
+            const otherWeightsSum = totalWeight - names[currentIndex].weight;
+            
+            // Minimum required total weight for other entries (1 per entry)
+            const minOtherTotalWeight = names.length - 1; 
+            
+            // If the current entry's weight increases by 1 (delta=1), 
+            // the new total weight is oldTotal + 1.
+            // The max weight for the current entry is the total weight
+            // minus the minimum required weight of all others.
+            return totalWeight - minOtherTotalWeight;
+        }
+
+        function getMinWeight() {
+            return 1;
+        }
+
+        function renderEntries() {
+            entriesContainer.innerHTML = ''; 
+            
+            names.forEach((entry, i) => {
+                const maxWeight = getMaxWeight(i);
+                const canIncrease = entry.weight < maxWeight;
+                const canDecrease = entry.weight > getMinWeight();
+                const entryDiv = document.createElement('div');
+                entryDiv.className = 'flex items-center gap-2 p-2 rounded-lg transition-all entry-item-bg ' + 
+                    'bg-black/10 hover:bg-black/20 light-mode:bg-white light-mode:hover:bg-gray-50 border border-white/10 light-mode:border-gray-300';
+                
+                const nameInput = document.createElement('input');
+                nameInput.type = 'text';
+                nameInput.value = entry.name;
+                nameInput.placeholder = 'Name';
+                nameInput.className = 'flex-grow px-2 py-1 bg-transparent border border-white/10 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/50 entry-input light-mode:text-gray-900 light-mode:border-gray-300 light-mode:bg-gray-50';
+                nameInput.oninput = (e) => updateName(i, e.target.value);
+
+                const weightGroup = document.createElement('div');
+                weightGroup.className = 'flex items-center group relative';
+
+                // Display Limit Message on hover/focus if increase is disabled
+                if (!canIncrease && names.length > 1) {
+                     const limitSpan = document.createElement('span');
+                     limitSpan.innerText = 'Max weight reached';
+                     limitSpan.className = 'absolute -top-6 right-0 text-xs text-red-400 bg-red-900/90 light-mode:bg-red-100 light-mode:text-red-700 px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap';
+                     weightGroup.appendChild(limitSpan);
+                }
+                
+                // MINUS button
+                const minusBtn = document.createElement('button');
+                minusBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>';
+                minusBtn.className = 'w-6 h-6 rounded-l-md bg-white/10 hover:bg-white/20 light-mode:bg-gray-200 light-mode:hover:bg-gray-300 transition-colors flex items-center justify-center disabled:opacity-50';
+                minusBtn.onclick = () => changeWeight(i, -1);
+                minusBtn.disabled = !canDecrease;
+
+                const weightDisplay = document.createElement('span');
+                weightDisplay.innerText = entry.weight;
+                weightDisplay.className = 'w-10 px-1 py-1 text-center bg-transparent border-y border-white/10 light-mode:border-gray-300 text-sm font-semibold';
+                
+                // PLUS button
+                const plusBtn = document.createElement('button');
+                plusBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>';
+                plusBtn.className = 'w-6 h-6 rounded-r-md bg-white/10 hover:bg-white/20 light-mode:bg-gray-200 light-mode:hover:bg-gray-300 transition-colors flex items-center justify-center disabled:opacity-50';
+                plusBtn.onclick = () => changeWeight(i, 1);
+                plusBtn.disabled = !canIncrease;
+
+
+                const removeBtn = document.createElement('button');
+                removeBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>';
+                removeBtn.className = 'p-1 rounded-md text-red-400 hover:bg-red-900/50 light-mode:hover:bg-red-100 transition-colors btn-fancy';
+                removeBtn.onclick = () => removeEntry(i);
+                weightGroup.appendChild(minusBtn);
+                weightGroup.appendChild(weightDisplay);
+                weightGroup.appendChild(plusBtn);
+                entryDiv.appendChild(nameInput);
+                entryDiv.appendChild(weightGroup);
+                entryDiv.appendChild(removeBtn);
+
+                entriesContainer.appendChild(entryDiv);
+            });
+        }
+        
+        function updateName(index, newName) {
+            names[index].name = newName.trim() || 'Entry';
+            drawWheel();
+        }
+
+        function changeWeight(index, delta) {
+            const currentWeight = names[index].weight;
+            const newWeight = currentWeight + delta;
+            
+            if (newWeight < getMinWeight()) return;
+
+            if (delta > 0) {
+                const maxWeight = getMaxWeight(index);
+                if (currentWeight >= maxWeight) return;
+            }
+
+            names[index].weight = newWeight;
+            updateState();
+        }
+
+        function addEntry() {
+            names.push({ id: nextId++, name: `New Entry ${names.length + 1}`, weight: 1 });
+            updateState();
+            // Scroll to the new entry after adding
+            entriesContainer.scrollTop = entriesContainer.scrollHeight;
+        }
+
+        function removeEntry(index) {
+            if (names.length === 1) {
+                console.log("Cannot remove the last entry.");
+                // Optionally show a modal message instead of console.log
+                return;
+            }
+            names.splice(index, 1);
+            updateState();
+                }
+
+
+        // --- Canvas and Wheel Drawing ---
+        function resizeCanvas() {
+            const parent = canvas.parentElement;
+            canvas.width = parent.clientWidth;
+            canvas.height = parent.clientHeight;
+        }
+
+        function drawWheel() {
+            if (names.length === 0 || totalWeight === 0) {
+                drawEmptyWheel();
+                return;
+            }
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = Math.min(centerX, centerY) - 5;
+            
+            let startAngle = currentRotation;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Segments
+            names.forEach((entry, i) => {
+                const arcSize = (entry.weight / totalWeight) * (2 * Math.PI);
+                const endAngle = startAngle + arcSize;
+                
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                ctx.lineTo(centerX, centerY);
+                
+                // Subtle gradient for segments
+                const color = colors[i % colors.length];
+                const gradient = ctx.createLinearGradient(centerX, centerY, centerX + radius * Math.cos(startAngle + arcSize / 2), centerY + radius * Math.sin(startAngle + arcSize / 2));
+                gradient.addColorStop(0, color + 'e0'); 
+                gradient.addColorStop(1, color);
+                
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                ctx.strokeStyle = isDarkMode ? "rgba(0,0,0,0.4)" : "rgba(255,255,255,0.4)";
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                // Draw Text
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                const textAngle = startAngle + arcSize / 2;
+                ctx.rotate(textAngle); 
+                
+                ctx.textAlign = "right";
+                ctx.fillStyle = isDarkMode ? "#fff" : "#1e293b";
+                ctx.shadowColor = isDarkMode ? "rgba(0,0,0,0.5)" : "rgba(255,255,255,0.5)";
+                ctx.shadowBlur = 4;
+                
+                // Dynamic Text Sizing and Wrapping
+                const maxTextLength = 20;
+                const innerRadius = radius * 0.15;
+                const availableSpace = radius - innerRadius - 20;
+                let fontSize = Math.max(14, radius / 12);
+                
+                let lines = [];
+                let text = entry.name;
+                
+                // Simple wrapping logic based on space and name length
+                if (text.length > maxTextLength * 1.5 && arcSize < Math.PI / 4) {
+                    // Split long names in small segments
+                    const midPoint = Math.floor(text.length / 2);
+                    lines.push(text.substring(0, midPoint).trim());
+                    lines.push(text.substring(midPoint).trim());
+                    fontSize = Math.max(12, radius / 15);
+                } else {
+                    lines.push(text);
+                }
+
+                ctx.font = `bold ${fontSize}px Outfit`; 
+                
+                lines.forEach((line, lineIndex) => {
+                    const yOffset = 5 + (lineIndex * fontSize); 
+                    // Place the first line closer to the edge, subsequent lines inside
+                    ctx.fillText(line.substring(0, maxTextLength) + (line.length > maxTextLength ? '...' : ''), radius - 20, yOffset); 
+                });
+                
+                ctx.restore();
+
+                startAngle = endAngle;
+            });
+            // Draw Center Hub Decoration (Inner Circle)
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius * 0.15, 0, 2 * Math.PI);
+            ctx.fillStyle = isDarkMode ? "#ffffff" : "#f1f5f9";
+            ctx.fill();
+            
+            // Update pointer color in real-time
+            if (isSpinning) {
+                updatePointerColor(getSegmentAtPointer(currentRotation));
+            } else {
+                updatePointerColor(null);
+            }
+        }
+        
+        function drawEmptyWheel() {
+            // (Same as before)
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = Math.min(centerX, centerY) - 5;
+            
+            const wheelBgColor = isDarkMode ? "#334155" : "#cbd5e1";
+            const textColor = isDarkMode ? "#94a3b8" : "#475569";
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.fillStyle = wheelBgColor;
+            ctx.fill();
+            
+            ctx.fillStyle = textColor;
+            ctx.font = "bold 20px Outfit";
+            ctx.textAlign = "center";
+            ctx.fillText("Add Entries to Spin", centerX, centerY);
+        }
+
+        function getSegmentAtPointer(rotation) {
+            if (totalWeight === 0) return null;
+
+            // Normalized rotation for the pointer's location (3 o'clock position = 0 radians)
+            let normalizedRotation = (2 * Math.PI - (rotation % (2 * Math.PI))) % (2 * Math.PI);
+            if (normalizedRotation < 0) normalizedRotation += 2 * Math.PI; 
+            
+            let cumulativeAngle = 0;
+            for(let i = 0; i < names.length; i++) {
+                const entry = names[i];
+                const arcSize = (entry.weight / totalWeight) * (2 * Math.PI);
+                
+                if (normalizedRotation >= cumulativeAngle && normalizedRotation < cumulativeAngle + arcSize) {
+                    return { name: entry.name, color: colors[i % colors.length] };
+                }
+                cumulativeAngle += arcSize;
+            }
+            return null; 
+        }
+
+        function updatePointerColor(segment) {
+            let color = isDarkMode ? 'white' : '#1e293b'; // Default color
+            let shadow = isDarkMode ? 'drop-shadow(-6px 0 6px rgba(0,0,0,0.5))' : 'drop-shadow(-6px 0 6px rgba(0,0,0,0.2))';
+
+            if (segment) {
+                color = segment.color;
+                // Add a stronger glow to the winning color
+                shadow = `drop-shadow(-6px 0 10px ${color})`;
+            }
+
+            pointer.style.borderRightColor = color;
+            pointer.style.filter = shadow;
+        }
+
+        // --- Spinning Logic ---
+        function spinWheel() {
+            if (isSpinning || names.length === 0 || totalWeight === 0) return;
+            
+            closeModal();
+            playSpinSound(); 
+
+            isSpinning = true;
+            spinBtn.disabled = true;
+            spinBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+            // Set initial velocity high
+            spinVelocity = 1.0 + (Math.random() * 0.5); 
+            
+            animate();
+        }
+
+        function animate() {
+            spinVelocity *= 0.985; // Deceleration factor
+        // Update sound pitch/rate based on velocity
+            if(isSpinSoundPlaying) {
+                updateSpinSoundRate(spinVelocity);
+            }
+
+            if (spinVelocity < 0.002) {
+                isSpinning = false;
+                spinVelocity = 0;
+                spinBtn.disabled = false;
+                spinBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                cancelAnimationFrame(animationFrameId);
+                stopSpinSound(); 
+                determineWinner();
+                return;
+            }
+
+            currentRotation += spinVelocity;
+            currentRotation = currentRotation % (2 * Math.PI);
+            
+            drawWheel();
+            animationFrameId = requestAnimationFrame(animate);
+        }
+
+        function determineWinner() {
+            if (totalWeight === 0) return;
+
+            let winningAngle = (2 * Math.PI - (currentRotation % (2 * Math.PI))) % (2 * Math.PI);
+            if (winningAngle < 0) winningAngle += 2 * Math.PI;
+
+            let cumulativeAngle = 0;
+            let winner = null;
+            let winnerColor = null;
+            
+            for(let i = 0; i < names.length; i++) {
+                const entry = names[i];
+                const arcSize = (entry.weight / totalWeight) * (2 * Math.PI);
+                
+                if (winningAngle >= cumulativeAngle && winningAngle < cumulativeAngle + arcSize) {
+                    winner = entry.name;
+                    winnerColor = colors[i % colors.length];
+                    break;
+                }
+                cumulativeAngle += arcSize;
+            }
+            // Finalize pointer color to the winner's color
+            pointer.style.borderRightColor = winnerColor || (isDarkMode ? 'white' : '#1e293b');
+            pointer.style.filter = `drop-shadow(-6px 0 10px ${winnerColor})`;
+
+            if (winner) {
+                showWinner(winner);
+            }
+        }
+        // --- Winner Handling ---
+        function showWinner(name) {
+            winnerText.innerHTML = `<span class="text-4xl font-light text-gray-300 light-mode:text-gray-600">WINNER IS</span><br/>${name}`;
+            modal.style.opacity = '1';
+            modal.style.pointerEvents = 'auto';
+            
+            setTimeout(playWinSound, 100); 
+            
+            triggerConfetti();
+        }
+
+        function closeModal() {
+            modal.style.opacity = '0';
+            modal.style.pointerEvents = 'none';
+        }
+
+        // --- Confetti Effect (unchanged) ---
+        function triggerConfetti() {
+            if (typeof confetti === 'undefined') {
+                return;
+            }
+
+            const duration = 3500;
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 60 };
+
+            const randomInRange = (min, max) => Math.random() * (max - min) + min;
+
+            const interval = setInterval(function() {
+                const timeLeft = animationEnd - Date.now();
+
+                if (timeLeft <= 0) {
+                    return clearInterval(interval);
+                }
+
+                const particleCount = 50 * (timeLeft / duration);
+                confetti(Object.assign({}, defaults, { 
+                    particleCount, 
+                    origin: { x: randomInRange(0.1, 0.3), y: randomInRange(0.7, 0.9) } 
+                }));
+                confetti(Object.assign({}, defaults, { 
+                    particleCount, 
+                    origin: { x: randomInRange(0.7, 0.9), y: randomInRange(0.7, 0.9) } 
+                }));
+            }, 250);
+        }
+
+        // --- Helpers (unchanged) ---
+        function shuffleNames() {
+            for (let i = names.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [names[i], names[j]] = [names[j], names[i]];
+            }
+            updateState();
+        }
+
+        function sortNames() {
+            names.sort((a, b) => a.name.localeCompare(b.name));
+            updateState();
+        }
+
+        // Start the application
+        window.onload = init;
+    </script>
+</body>
+</html>
