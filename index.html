@@ -1,0 +1,2338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5091115434625726"
+         crossorigin="anonymous"></script>
+    <meta property="og:title" content="JpgBolt — Fast JPG Converter & Image Tools">
+    <meta property="og:description" content="Convert WEBP, PNG, PDF, GIF to JPG instantly. Compress and resize images. Free and fast online image tools.">
+    <meta property="og:url" content="https://jpgbolt.pages.dev">
+    <meta property="og:type" content="website">
+    <link rel="canonical" href="https://jpgbolt.pages.dev">
+    <meta name="description" content="Convert WEBP, PNG, PDF, GIF to JPG instantly. Compress and resize images. Fast, secure, free online image tools.">
+    <link rel="icon" type="image/png" href="https://uploads.onecompiler.io/4463b6jgm/4464gernq/612.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JpgBolt — Image Converter, Compressor & Resizer Online</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <style>
+        :root {
+            --primary: #1e40af;
+            --secondary: #3b82f6;
+            --accent: #ff6b6b;
+            --success: #4cd964;
+            --warning: #ffcc00;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gradient-angle: 135deg;
+            --transition-speed: 0.3s;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --card-border: rgba(255, 255, 255, 0.2);
+            --shadow: rgba(0, 0, 0, 0.1);
+            --shadow-strong: rgba(0, 0, 0, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Page Container */
+        .page-container {
+            max-width: 100%;
+            min-height: 100vh;
+            padding: 1rem 1rem 80px 1rem;
+            position: relative;
+        }
+
+        .page {
+            display: none;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .page.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            margin-bottom: 1rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .logo-image {
+            height: 40px;
+            margin-right: 0.5rem;
+        }
+
+        /* Back Button */
+        .back-btn {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--card-border);
+            color: var(--text-primary);
+            border-radius: 50px;
+            padding: 0.7rem 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            box-shadow: 0 4px 15px var(--shadow);
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--shadow-strong);
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 3rem 1rem;
+            position: relative;
+            overflow: hidden;
+            border-radius: 24px;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            box-shadow: 0 10px 30px var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: conic-gradient(from 0deg, var(--primary), var(--secondary), #60a5fa, var(--primary));
+            opacity: 0.1;
+            z-index: -1;
+            animation: gradientWave 15s ease infinite;
+        }
+
+        .hero-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            color: white;
+            animation: fadeIn 1s ease forwards;
+            opacity: 0;
+        }
+
+        .hero-subtitle {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 2rem;
+            animation: fadeIn 1s ease 0.3s forwards;
+            opacity: 0;
+        }
+
+        /* Credits */
+        .credits {
+            margin-top: 2rem;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .credits a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .credits a:hover {
+            text-decoration: underline;
+        }
+
+        /* Feature Cards */
+        .features {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (min-width: 768px) {
+            .features {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .features {
+                grid-template-columns: 1fr 1fr 1fr;
+            }
+        }
+
+        .feature-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 25px var(--shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-card:hover, .feature-card:active {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 15px 35px var(--shadow-strong);
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            opacity: 0.05;
+            z-index: -1;
+            transition: opacity 0.3s ease;
+        }
+
+        .feature-card:hover::before {
+            opacity: 0.1;
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .feature-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .feature-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        /* Upload Box */
+        .upload-box {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            border-radius: 24px;
+            padding: 3rem 2rem;
+            text-align: center;
+            margin: 2rem auto;
+            max-width: 600px;
+            box-shadow: 0 8px 25px var(--shadow);
+            border: 3px dashed #e0e0e0;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .upload-box.active {
+            border-color: var(--primary);
+            box-shadow: 0 0 30px rgba(30, 64, 175, 0.2);
+        }
+
+        .upload-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 24px;
+            padding: 3px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+
+        .upload-box.active::before {
+            opacity: 1;
+            animation: borderPulse 2s infinite;
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+        }
+
+        .upload-box.active .upload-icon {
+            color: var(--primary);
+            transform: scale(1.1);
+        }
+
+        .upload-text {
+            margin-bottom: 2rem;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 15px rgba(30, 64, 175, 0.3);
+            font-size: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: 0.5s;
+        }
+
+        .upload-btn:hover::before {
+            left: 100%;
+        }
+
+        .upload-btn:hover, .upload-btn:active {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(30, 64, 175, 0.4);
+        }
+
+        /* Preview Section */
+        .preview-section {
+            display: none;
+            margin: 2rem auto;
+            max-width: 600px;
+            text-align: center;
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        .preview-title {
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 16px;
+            box-shadow: 0 5px 20px var(--shadow);
+            margin-bottom: 2rem;
+            animation: scaleIn 0.5s ease forwards;
+        }
+
+        .pdf-preview-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border-radius: 16px;
+            box-shadow: 0 5px 20px var(--shadow);
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: white;
+        }
+
+        .pdf-preview-page {
+            margin-bottom: 1rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .pdf-preview-page:last-child {
+            margin-bottom: 0;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .convert-btn, .download-btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 1.2rem 2.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(30, 64, 175, 0.4);
+            position: relative;
+            overflow: hidden;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, var(--success), #2ecc71);
+            box-shadow: 0 5px 20px rgba(76, 217, 100, 0.4);
+        }
+
+        .convert-btn:hover, .convert-btn:active, 
+        .download-btn:hover, .download-btn:active {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(30, 64, 175, 0.5);
+        }
+
+        /* FAQ Section */
+        .faq-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .faq-item {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            border-radius: 16px;
+            margin-bottom: 1rem;
+            box-shadow: 0 5px 15px var(--shadow);
+            overflow: hidden;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .faq-item:hover {
+            transform: translateY(-3px);
+        }
+
+        .faq-question {
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+            color: var(--text-primary);
+        }
+
+        .faq-question:hover {
+            background: rgba(30, 64, 175, 0.05);
+        }
+
+        .faq-icon {
+            transition: transform 0.3s ease;
+            color: var(--text-secondary);
+        }
+
+        .faq-answer {
+            padding: 0 1.5rem;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .faq-item.active .faq-answer {
+            padding: 0 1.5rem 1.5rem;
+            max-height: 500px;
+        }
+
+        .faq-item.active .faq-icon {
+            transform: rotate(180deg);
+        }
+
+        /* Bottom Navbar */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            display: flex;
+            justify-content: space-around;
+            padding: 0.8rem 0;
+            box-shadow: 0 -5px 20px var(--shadow);
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 0.5rem;
+            border-radius: 12px;
+            flex: 1;
+            max-width: 80px;
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+        }
+
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            width: 40px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 3px;
+        }
+
+        .nav-icon {
+            font-size: 1.3rem;
+            margin-bottom: 0.3rem;
+            transition: transform 0.3s ease;
+        }
+
+        .nav-item.active .nav-icon {
+            transform: translateY(-2px);
+        }
+
+        /* Animations */
+        @keyframes gradientWave {
+            0% { opacity: 0.1; transform: scale(1); }
+            50% { opacity: 0.2; transform: scale(1.05); }
+            100% { opacity: 0.1; transform: scale(1); }
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes borderPulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+
+        @keyframes scaleIn {
+            0% { transform: scale(0.9); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Responsive Design */
+        @media (min-width: 768px) {
+            .page-container {
+                padding: 2rem 2rem 90px 2rem;
+            }
+            
+            .hero-title {
+                font-size: 3.5rem;
+            }
+            
+            .upload-box {
+                padding: 4rem 3rem;
+                min-height: 350px;
+            }
+            
+            .bottom-nav {
+                max-width: 400px;
+                left: 50%;
+                transform: translateX(-50%);
+                border-radius: 20px;
+                bottom: 1rem;
+            }
+        }
+
+        /* Utility Classes */
+        .hidden {
+            display: none;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            position: relative;
+            display: inline-block;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--text-primary);
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            border-radius: 3px;
+        }
+
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            opacity: 0.1;
+            animation: float 15s infinite linear;
+        }
+
+        .file-info {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(30, 64, 175, 0.05);
+            border-radius: 10px;
+            text-align: left;
+        }
+
+        .file-info p {
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .conversion-options {
+            margin: 1.5rem 0;
+            text-align: left;
+        }
+
+        .option-group {
+            margin-bottom: 1rem;
+        }
+
+        .option-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        /* Quality Slider */
+        .quality-slider {
+            flex: 1;
+            height: 8px;
+            -webkit-appearance: none;
+            background: linear-gradient(to right, #e0e0e0, var(--primary), var(--secondary));
+            border-radius: 10px;
+            outline: none;
+            position: relative;
+        }
+
+        .quality-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            border: 3px solid white;
+            transition: all 0.2s ease;
+        }
+
+        .quality-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .quality-slider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            border: 3px solid white;
+            transition: all 0.2s ease;
+        }
+
+        .quality-slider::-moz-range-thumb:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .quality-value {
+            min-width: 40px;
+            text-align: center;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-size: 1.1rem;
+        }
+
+        /* PDF Warning */
+        .pdf-warning {
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 1rem 0;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .pdf-warning i {
+            color: var(--accent);
+            margin-right: 0.5rem;
+        }
+
+        .page-selector {
+            margin: 1rem 0;
+            text-align: center;
+        }
+
+        .page-buttons {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+        }
+
+        .page-btn {
+            background: var(--card-bg);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text-secondary);
+        }
+
+        .page-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .page-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px var(--shadow);
+        }
+
+        /* Compression Stats */
+        .compression-stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: rgba(30, 64, 175, 0.05);
+            border-radius: 10px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.3rem;
+        }
+
+        /* Resize Controls */
+        .resize-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .dimension-input {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            flex: 1;
+        }
+
+        .dimension-input label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .dimension-input input {
+            padding: 0.5rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .aspect-ratio-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .aspect-ratio-toggle label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* Size Comparison */
+        .size-comparison {
+            display: flex;
+            justify-content: space-between;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: linear-gradient(135deg, rgba(30, 64, 175, 0.05), rgba(59, 130, 246, 0.05));
+            border-radius: 10px;
+        }
+
+        .size-original, .size-compressed {
+            text-align: center;
+            flex: 1;
+        }
+
+        .size-title {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .size-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .size-original .size-value {
+            color: var(--accent);
+        }
+
+        .size-compressed .size-value {
+            color: var(--success);
+        }
+
+        .size-reduction {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div style="width:100%; display:flex; justify-content:center; margin-top:10px;">
+        <script type="text/javascript">
+            atOptions = {
+                'key' : '33f1a9acb930e43a7c9e443baf49b8c6',
+                'format' : 'iframe',
+                'height' : 50,
+                'width' : 320,
+                'params' : {}
+            };
+        </script>
+        <script type="text/javascript" src="//www.highperformanceformat.com/33f1a9acb930e43a7c9e443baf49b8c6/invoke.js"></script>
+    </div>
+    
+    <!-- Page Container -->
+    <div class="page-container">
+        <!-- Home Page -->
+        <div id="home-page" class="page active">
+            <div class="header">
+                <div class="logo">
+                    <img src="https://uploads.onecompiler.io/4463b6jgm/4464gernq/612.png" alt="JpgBolt" class="logo-image">
+                    JpgBolt
+                </div>
+            </div>
+
+            <div class="hero">
+                <h1 class="hero-title">JpgBolt — All-in-One Image Tools</h1>
+                <p class="hero-subtitle">Convert, compress, and resize images instantly</p>
+                <div class="particles" id="hero-particles"></div>
+                <div class="credits">
+                    Made by <a href="#" target="_blank">Abdul Subhan</a>
+                </div>
+            </div>
+
+            <h2 class="section-title">Image Tools</h2>
+            <div class="features">
+                <div class="feature-card" data-target="png-to-jpg">
+                    <div class="feature-icon">
+                        <i class="fas fa-file-image"></i>
+                    </div>
+                    <h3 class="feature-title">PNG to JPG</h3>
+                    <p class="feature-description">Convert PNG images to high-quality JPG format with optimized compression.</p>
+                </div>
+                <div class="feature-card" data-target="webp-to-jpg">
+                    <div class="feature-icon">
+                        <i class="fas fa-file-image"></i>
+                    </div>
+                    <h3 class="feature-title">WEBP to JPG</h3>
+                    <p class="feature-description">Transform WEBP images to universally compatible JPG format instantly.</p>
+                </div>
+                <div class="feature-card" data-target="pdf-to-jpg">
+                    <div class="feature-icon">
+                        <i class="fas fa-file-pdf"></i>
+                    </div>
+                    <h3 class="feature-title">PDF to JPG</h3>
+                    <p class="feature-description">Convert PDF documents to JPG images. Extract pages as individual images.</p>
+                </div>
+                <div class="feature-card" data-target="jpeg-to-jpg">
+                    <div class="feature-icon">
+                        <i class="fas fa-file-image"></i>
+                    </div>
+                    <h3 class="feature-title">JPEG to JPG</h3>
+                    <p class="feature-description">Standardize your JPEG files to JPG format with optimized compression.</p>
+                </div>
+                <div class="feature-card" data-target="gif-to-jpg">
+                    <div class="feature-icon">
+                        <i class="fas fa-file-image"></i>
+                    </div>
+                    <h3 class="feature-title">GIF to JPG</h3>
+                    <p class="feature-description">Convert animated or static GIF images to JPG format.</p>
+                </div>
+                <div class="feature-card" data-target="image-compressor">
+                    <div class="feature-icon">
+                        <i class="fas fa-compress-alt"></i>
+                    </div>
+                    <h3 class="feature-title">Image Compressor</h3>
+                    <p class="feature-description">Compress JPG, PNG, WEBP images to reduce file size without losing quality.</p>
+                </div>
+                <div class="feature-card" data-target="image-resizer">
+                    <div class="feature-icon">
+                        <i class="fas fa-expand-alt"></i>
+                    </div>
+                    <h3 class="feature-title">Image Resizer</h3>
+                    <p class="feature-description">Resize images to custom dimensions while maintaining aspect ratio.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tools Page -->
+        <div id="tools-page" class="page">
+            <div class="header">
+                <div class="logo">
+                    <img src="https://uploads.onecompiler.io/4463b6jgm/4464gernq/612.png" alt="JpgBolt" class="logo-image">
+                    JpgBolt
+                </div>
+                <button class="back-btn" data-page="home-page">
+                    <i class="fas fa-arrow-left"></i> Back
+                </button>
+            </div>
+            
+            <h2 class="section-title">Available Tools</h2>
+            <div class="features">
+                <div class="feature-card" data-target="png-to-jpg">
+                    <div class="feature-icon">
+                        <i class="fas fa-file-image"></i>
+                    </div>
+                    <h3 class="feature-title">PNG to JPG Converter</h3>
+                    <p class="feature-description">Convert PNG images to JPG format with adjustable quality settings.</p>
+                </div>
+                <div class="feature-card" data-target="webp-to-jpg">
+                    <div class="feature-icon">
+                        <i class="fas fa-file-image"></i>
+                    </div>
+                    <h3 class="feature-title">WEBP to JPG Converter</h3>
+                    <p class="feature-description">Transform WEBP images to JPG format while preserving image quality.</p>
+                </div>
+                <div class="feature-card" data-target="pdf-to-jpg">
+                    <div class="feature-icon">
+                        <i class="fas fa-file-pdf"></i>
+                    </div>
+                    <h3 class="feature-title">PDF to JPG Converter</h3>
+                    <p class="feature-description">Convert PDF documents to JPG images with page selection.</p>
+                </div>
+                <div class="feature-card" data-target="jpeg-to-jpg">
+                    <div class="feature-icon">
+                        <i class="fas fa-file-image"></i>
+                    </div>
+                    <h3 class="feature-title">JPEG to JPG Converter</h3>
+                    <p class="feature-description">Standardize JPEG files to JPG format with customizable compression.</p>
+                </div>
+                <div class="feature-card" data-target="gif-to-jpg">
+                    <div class="feature-icon">
+                        <i class="fas fa-file-image"></i>
+                    </div>
+                    <h3 class="feature-title">GIF to JPG Converter</h3>
+                    <p class="feature-description">Convert GIF images to JPG format. First frame for animated GIFs.</p>
+                </div>
+                <div class="feature-card" data-target="image-compressor">
+                    <div class="feature-icon">
+                        <i class="fas fa-compress-alt"></i>
+                    </div>
+                    <h3 class="feature-title">Image Compressor</h3>
+                    <p class="feature-description">Reduce image file size while maintaining visual quality.</p>
+                </div>
+                <div class="feature-card" data-target="image-resizer">
+                    <div class="feature-icon">
+                        <i class="fas fa-expand-alt"></i>
+                    </div>
+                    <h3 class="feature-title">Image Resizer</h3>
+                    <p class="feature-description">Resize images to specific dimensions with aspect ratio control.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- FAQ Page -->
+        <div id="faq-page" class="page">
+            <div class="header">
+                <div class="logo">
+                    <img src="https://uploads.onecompiler.io/4463b6jgm/4464gernq/612.png" alt="JpgBolt" class="logo-image">
+                    JpgBolt
+                </div>
+                <button class="back-btn" data-page="home-page">
+                    <i class="fas fa-arrow-left"></i> Back
+                </button>
+            </div>
+            
+            <h2 class="section-title">Frequently Asked Questions</h2>
+            <div class="faq-container">
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>How does JpgBolt convert images?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>JpgBolt uses client-side JavaScript and HTML5 Canvas to process your images directly in your browser. This means your images never leave your device, ensuring complete privacy and fast conversion speeds.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>What image formats are supported?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>JpgBolt supports conversion from PNG, WEBP, PDF, JPEG, GIF formats to JPG. We also support image compression and resizing for most common formats.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Is there a file size limit?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Since processing happens in your browser, very large images might slow down the conversion process. For optimal performance, we recommend images under 10MB.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Are my images stored anywhere?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>No, your images are processed entirely in your browser and never uploaded to any server. This ensures complete privacy and security for your files.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Is JpgBolt completely free to use?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Yes, JpgBolt is completely free with no hidden costs or limitations. We believe in providing accessible tools for everyone.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>What happens with animated GIFs?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>When converting animated GIFs to JPG, only the first frame of the animation will be converted to a static JPG image.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>How does image compression work?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Our image compressor reduces file size by optimizing the image quality while maintaining visual integrity. You can adjust the compression level to balance between file size and quality.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Can I resize images without losing quality?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Our resizer maintains image quality by using smart resizing algorithms. You can resize images while preserving aspect ratio or set custom dimensions.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="credits" style="margin-top: 3rem; color: var(--text-secondary);">
+                Made by <a href="#" target="_blank" style="color: var(--primary);">Abdul Subhan</a>
+            </div>
+        </div>
+
+        <!-- PNG to JPG Converter Page -->
+        <div id="png-to-jpg" class="page">
+            <div class="header">
+                <div class="logo">
+                    <img src="https://uploads.onecompiler.io/4463b6jgm/4464gernq/612.png" alt="JpgBolt" class="logo-image">
+                    JpgBolt
+                </div>
+                <button class="back-btn" data-page="tools-page">
+                    <i class="fas fa-arrow-left"></i> Back
+                </button>
+            </div>
+            
+            <h2 class="section-title">PNG to JPG Converter</h2>
+            <div class="upload-box" id="png-upload-box">
+                <div class="upload-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <p class="upload-text">Drag & drop your PNG image here or click to browse files</p>
+                <input type="file" id="png-file-input" accept=".png" hidden>
+                <button class="upload-btn" id="png-upload-btn">Select PNG File</button>
+            </div>
+            <div class="preview-section" id="png-preview">
+                <h3 class="preview-title">Image Preview</h3>
+                <img id="png-preview-image" class="preview-image" src="" alt="Preview">
+                
+                <div class="conversion-options">
+                    <div class="option-group">
+                        <label class="option-label">JPG Quality</label>
+                        <div class="slider-container">
+                            <input type="range" min="1" max="100" value="90" class="quality-slider" id="png-quality">
+                            <span class="quality-value" id="png-quality-value">90%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="file-info" id="png-file-info"></div>
+                
+                <div class="action-buttons">
+                    <button class="convert-btn" id="png-convert-btn">Convert to JPG</button>
+                    <a class="download-btn" id="png-download-btn" style="display: none;">Download JPG</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- WEBP to JPG Converter Page -->
+        <div id="webp-to-jpg" class="page">
+            <div class="header">
+                <div class="logo">
+                    <img src="https://uploads.onecompiler.io/4463b6jgm/4464gernq/612.png" alt="JpgBolt" class="logo-image">
+                    JpgBolt
+                </div>
+                <button class="back-btn" data-page="tools-page">
+                    <i class="fas fa-arrow-left"></i> Back
+                </button>
+            </div>
+            
+            <h2 class="section-title">WEBP to JPG Converter</h2>
+            <div class="upload-box" id="webp-upload-box">
+                <div class="upload-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <p class="upload-text">Drag & drop your WEBP image here or click to browse files</p>
+                <input type="file" id="webp-file-input" accept=".webp" hidden>
+                <button class="upload-btn" id="webp-upload-btn">Select WEBP File</button>
+            </div>
+            <div class="preview-section" id="webp-preview">
+                <h3 class="preview-title">Image Preview</h3>
+                <img id="webp-preview-image" class="preview-image" src="" alt="Preview">
+                
+                <div class="conversion-options">
+                    <div class="option-group">
+                        <label class="option-label">JPG Quality</label>
+                        <div class="slider-container">
+                            <input type="range" min="1" max="100" value="90" class="quality-slider" id="webp-quality">
+                            <span class="quality-value" id="webp-quality-value">90%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="file-info" id="webp-file-info"></div>
+                
+                <div class="action-buttons">
+                    <button class="convert-btn" id="webp-convert-btn">Convert to JPG</button>
+                    <a class="download-btn" id="webp-download-btn" style="display: none;">Download JPG</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- PDF to JPG Converter Page -->
+        <div id="pdf-to-jpg" class="page">
+            <div class="header">
+                <div class="logo">
+                    <img src="https://uploads.onecompiler.io/4463b6jgm/4464gernq/612.png" alt="JpgBolt" class="logo-image">
+                    JpgBolt
+                </div>
+                <button class="back-btn" data-page="tools-page">
+                    <i class="fas fa-arrow-left"></i> Back
+                </button>
+            </div>
+            
+            <h2 class="section-title">PDF to JPG Converter</h2>
+            <div class="upload-box" id="pdf-upload-box">
+                <div class="upload-icon">
+                    <i class="fas fa-file-pdf"></i>
+                </div>
+                <p class="upload-text">Drag & drop your PDF file here or click to browse files</p>
+                <input type="file" id="pdf-file-input" accept=".pdf" hidden>
+                <button class="upload-btn" id="pdf-upload-btn">Select PDF File</button>
+            </div>
+            <div class="preview-section" id="pdf-preview">
+                <h3 class="preview-title">PDF Preview</h3>
+                <div class="pdf-preview-container" id="pdf-preview-container">
+                    <!-- PDF pages will be rendered here -->
+                </div>
+                
+                <div class="pdf-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Note:</strong> Large PDF files may take longer to process. For best results, use PDFs with fewer than 20 pages.
+                </div>
+                
+                <div class="page-selector" id="page-selector" style="display: none;">
+                    <label class="option-label">Select Pages to Convert:</label>
+                    <div class="page-buttons" id="page-buttons">
+                        <!-- Page buttons will be generated here -->
+                    </div>
+                </div>
+                
+                <div class="conversion-options">
+                    <div class="option-group">
+                        <label class="option-label">JPG Quality</label>
+                        <div class="slider-container">
+                            <input type="range" min="1" max="100" value="90" class="quality-slider" id="pdf-quality">
+                            <span class="quality-value" id="pdf-quality-value">90%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="file-info" id="pdf-file-info"></div>
+                
+                <div class="action-buttons">
+                    <button class="convert-btn" id="pdf-convert-btn">Convert to JPG</button>
+                    <a class="download-btn" id="pdf-download-btn" style="display: none;">Download JPG</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- JPEG to JPG Converter Page -->
+        <div id="jpeg-to-jpg" class="page">
+            <div class="header">
+                <div class="logo">
+                    <img src="https://uploads.onecompiler.io/4463b6jgm/4464gernq/612.png" alt="JpgBolt" class="logo-image">
+                    JpgBolt
+                </div>
+                <button class="back-btn" data-page="tools-page">
+                    <i class="fas fa-arrow-left"></i> Back
+                </button>
+            </div>
+            
+            <h2 class="section-title">JPEG to JPG Converter</h2>
+            <div class="upload-box" id="jpeg-upload-box">
+                <div class="upload-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <p class="upload-text">Drag & drop your JPEG image here or click to browse files</p>
+                <input type="file" id="jpeg-file-input" accept=".jpeg,.jpg" hidden>
+                <button class="upload-btn" id="jpeg-upload-btn">Select JPEG File</button>
+            </div>
+            <div class="preview-section" id="jpeg-preview">
+                <h3 class="preview-title">Image Preview</h3>
+                <img id="jpeg-preview-image" class="preview-image" src="" alt="Preview">
+                
+                <div class="conversion-options">
+                    <div class="option-group">
+                        <label class="option-label">JPG Quality</label>
+                        <div class="slider-container">
+                            <input type="range" min="1" max="100" value="90" class="quality-slider" id="jpeg-quality">
+                            <span class="quality-value" id="jpeg-quality-value">90%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="file-info" id="jpeg-file-info"></div>
+                
+                <div class="action-buttons">
+                    <button class="convert-btn" id="jpeg-convert-btn">Convert to JPG</button>
+                    <a class="download-btn" id="jpeg-download-btn" style="display: none;">Download JPG</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- GIF to JPG Converter Page -->
+        <div id="gif-to-jpg" class="page">
+            <div class="header">
+                <div class="logo">
+                    <img src="https://uploads.onecompiler.io/4463b6jgm/4464gernq/612.png" alt="JpgBolt" class="logo-image">
+                    JpgBolt
+                </div>
+                <button class="back-btn" data-page="tools-page">
+                    <i class="fas fa-arrow-left"></i> Back
+                </button>
+            </div>
+            
+            <h2 class="section-title">GIF to JPG Converter</h2>
+            <div class="upload-box" id="gif-upload-box">
+                <div class="upload-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <p class="upload-text">Drag & drop your GIF image here or click to browse files</p>
+                <input type="file" id="gif-file-input" accept=".gif" hidden>
+                <button class="upload-btn" id="gif-upload-btn">Select GIF File</button>
+            </div>
+            <div class="preview-section" id="gif-preview">
+                <h3 class="preview-title">Image Preview</h3>
+                <img id="gif-preview-image" class="preview-image" src="" alt="Preview">
+                
+                <div class="conversion-options">
+                    <div class="option-group">
+                        <label class="option-label">JPG Quality</label>
+                        <div class="slider-container">
+                            <input type="range" min="1" max="100" value="90" class="quality-slider" id="gif-quality">
+                            <span class="quality-value" id="gif-quality-value">90%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="file-info" id="gif-file-info"></div>
+                
+                <div class="action-buttons">
+                    <button class="convert-btn" id="gif-convert-btn">Convert to JPG</button>
+                    <a class="download-btn" id="gif-download-btn" style="display: none;">Download JPG</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Image Compressor Page -->
+        <div id="image-compressor" class="page">
+            <div class="header">
+                <div class="logo">
+                    <img src="https://uploads.onecompiler.io/4463b6jgm/4464gernq/612.png" alt="JpgBolt" class="logo-image">
+                    JpgBolt
+                </div>
+                <button class="back-btn" data-page="tools-page">
+                    <i class="fas fa-arrow-left"></i> Back
+                </button>
+            </div>
+            
+            <h2 class="section-title">Image Compressor</h2>
+            <div class="upload-box" id="compressor-upload-box">
+                <div class="upload-icon">
+                    <i class="fas fa-compress-alt"></i>
+                </div>
+                <p class="upload-text">Drag & drop your image here or click to browse files</p>
+                <input type="file" id="compressor-file-input" accept=".jpg,.jpeg,.png,.webp" hidden>
+                <button class="upload-btn" id="compressor-upload-btn">Select Image</button>
+            </div>
+            <div class="preview-section" id="compressor-preview">
+                <h3 class="preview-title">Image Preview</h3>
+                <img id="compressor-preview-image" class="preview-image" src="" alt="Preview">
+                
+                <div class="conversion-options">
+                    <div class="option-group">
+                        <label class="option-label">Compression Level</label>
+                        <div class="slider-container">
+                            <input type="range" min="1" max="100" value="80" class="quality-slider" id="compressor-quality">
+                            <span class="quality-value" id="compressor-quality-value">80%</span>
+                        </div>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.5rem;">
+                            Lower quality = smaller file size
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="size-comparison" id="compressor-stats" style="display: none;">
+                    <div class="size-original">
+                        <div class="size-title">Original Size</div>
+                        <div class="size-value" id="original-size">0 KB</div>
+                    </div>
+                    <div class="size-compressed">
+                        <div class="size-title">Compressed Size</div>
+                        <div class="size-value" id="compressed-size">0 KB</div>
+                        <div class="size-reduction" id="reduction-percent">0% smaller</div>
+                    </div>
+                </div>
+                
+                <div class="file-info" id="compressor-file-info"></div>
+                
+                <div class="action-buttons">
+                    <button class="convert-btn" id="compressor-convert-btn">Compress Image</button>
+                    <a class="download-btn" id="compressor-download-btn" style="display: none;">Download Compressed Image</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Image Resizer Page -->
+        <div id="image-resizer" class="page">
+            <div class="header">
+                <div class="logo">
+                    <img src="https://uploads.onecompiler.io/4463b6jgm/4464gernq/612.png" alt="JpgBolt" class="logo-image">
+                    JpgBolt
+                </div>
+                <button class="back-btn" data-page="tools-page">
+                    <i class="fas fa-arrow-left"></i> Back
+                </button>
+            </div>
+            
+            <h2 class="section-title">Image Resizer</h2>
+            <div class="upload-box" id="resizer-upload-box">
+                <div class="upload-icon">
+                    <i class="fas fa-expand-alt"></i>
+                </div>
+                <p class="upload-text">Drag & drop your image here or click to browse files</p>
+                <input type="file" id="resizer-file-input" accept=".jpg,.jpeg,.png,.webp,.gif" hidden>
+                <button class="upload-btn" id="resizer-upload-btn">Select Image</button>
+            </div>
+            <div class="preview-section" id="resizer-preview">
+                <h3 class="preview-title">Image Preview</h3>
+                <img id="resizer-preview-image" class="preview-image" src="" alt="Preview">
+                
+                <div class="conversion-options">
+                    <div class="option-group">
+                        <label class="option-label">New Dimensions</label>
+                        <div class="resize-controls">
+                            <div class="dimension-input">
+                                <label for="resizer-width">Width (px)</label>
+                                <input type="number" id="resizer-width" min="1" value="800">
+                            </div>
+                            <div class="dimension-input">
+                                <label for="resizer-height">Height (px)</label>
+                                <input type="number" id="resizer-height" min="1" value="600">
+                            </div>
+                        </div>
+                        <div class="aspect-ratio-toggle">
+                            <input type="checkbox" id="lock-aspect-ratio" checked>
+                            <label for="lock-aspect-ratio">Maintain aspect ratio</label>
+                        </div>
+                        <div class="slider-container">
+                            <label class="option-label">Quality</label>
+                            <input type="range" min="1" max="100" value="90" class="quality-slider" id="resizer-quality">
+                            <span class="quality-value" id="resizer-quality-value">90%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="file-info" id="resizer-file-info">
+                    <p><strong>Original Dimensions:</strong> <span id="original-dimensions">0 x 0 px</span></p>
+                    <p><strong>New Dimensions:</strong> <span id="new-dimensions">800 x 600 px</span></p>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="convert-btn" id="resizer-convert-btn">Resize Image</button>
+                    <a class="download-btn" id="resizer-download-btn" style="display: none;">Download Resized Image</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="#" class="nav-item active" data-page="home-page">
+            <i class="fas fa-home nav-icon"></i>
+            <span>Home</span>
+        </a>
+        <a href="#" class="nav-item" data-page="tools-page">
+            <i class="fas fa-tools nav-icon"></i>
+            <span>Tools</span>
+        </a>
+        <a href="#" class="nav-item" data-page="faq-page">
+            <i class="fas fa-question-circle nav-icon"></i>
+            <span>FAQ</span>
+        </a>
+    </nav>
+
+    <script>
+        // Set up PDF.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+
+        // Wait for the DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Create floating particles
+            function createParticles(containerId, count) {
+                const container = document.getElementById(containerId);
+                if (!container) return;
+                
+                for (let i = 0; i < count; i++) {
+                    const particle = document.createElement('div');
+                    particle.classList.add('particle');
+                    
+                    // Random size between 5 and 20px
+                    const size = Math.random() * 15 + 5;
+                    particle.style.width = `${size}px`;
+                    particle.style.height = `${size}px`;
+                    
+                    // Random position
+                    particle.style.left = `${Math.random() * 100}%`;
+                    particle.style.top = `${Math.random() * 100}%`;
+                    
+                    // Random animation duration and delay
+                    const duration = Math.random() * 20 + 10;
+                    const delay = Math.random() * 5;
+                    particle.style.animationDuration = `${duration}s`;
+                    particle.style.animationDelay = `${delay}s`;
+                    
+                    container.appendChild(particle);
+                }
+            }
+            
+            // Create particles for hero section
+            createParticles('hero-particles', 15);
+
+            // Page Navigation
+            const navItems = document.querySelectorAll('.nav-item');
+            const pages = document.querySelectorAll('.page');
+            
+            navItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Remove active class from all nav items
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    
+                    // Add active class to clicked nav item
+                    this.classList.add('active');
+                    
+                    // Get target page
+                    const targetPage = this.getAttribute('data-page');
+                    
+                    // Hide all pages
+                    pages.forEach(page => {
+                        page.classList.remove('active');
+                    });
+                    
+                    // Show target page
+                    document.getElementById(targetPage).classList.add('active');
+                });
+            });
+
+            // Back Button Navigation
+            const backButtons = document.querySelectorAll('.back-btn');
+            
+            backButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const targetPage = this.getAttribute('data-page');
+                    
+                    // Hide all pages
+                    pages.forEach(page => {
+                        page.classList.remove('active');
+                    });
+                    
+                    // Show target page
+                    document.getElementById(targetPage).classList.add('active');
+                    
+                    // Update nav items
+                    navItems.forEach(nav => {
+                        nav.classList.remove('active');
+                        if (nav.getAttribute('data-page') === targetPage) {
+                            nav.classList.add('active');
+                        }
+                    });
+                });
+            });
+
+            // Feature Card Navigation
+            const featureCards = document.querySelectorAll('.feature-card');
+            
+            featureCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    const targetPage = this.getAttribute('data-target');
+                    
+                    if (targetPage) {
+                        // Hide all pages
+                        pages.forEach(page => {
+                            page.classList.remove('active');
+                        });
+                        
+                        // Show target page
+                        document.getElementById(targetPage).classList.add('active');
+                        
+                        // Update nav items
+                        navItems.forEach(nav => nav.classList.remove('active'));
+                    }
+                });
+            });
+
+            // FAQ Accordion
+            const faqItems = document.querySelectorAll('.faq-item');
+            
+            faqItems.forEach(item => {
+                const question = item.querySelector('.faq-question');
+                
+                question.addEventListener('click', function() {
+                    // Close all other items
+                    faqItems.forEach(otherItem => {
+                        if (otherItem !== item) {
+                            otherItem.classList.remove('active');
+                        }
+                    });
+                    
+                    // Toggle current item
+                    item.classList.toggle('active');
+                });
+            });
+
+            // Quality Sliders
+            const qualitySliders = document.querySelectorAll('.quality-slider');
+            const qualityValues = document.querySelectorAll('.quality-value');
+            
+            qualitySliders.forEach((slider, index) => {
+                slider.addEventListener('input', function() {
+                    qualityValues[index].textContent = `${this.value}%`;
+                });
+            });
+
+            // File Upload Functionality for regular images
+            function setupFileUpload(uploadBoxId, fileInputId, uploadBtnId, previewId, previewImageId, fileInfoId, acceptTypes) {
+                const uploadBox = document.getElementById(uploadBoxId);
+                const fileInput = document.getElementById(fileInputId);
+                const uploadBtn = document.getElementById(uploadBtnId);
+                const previewSection = document.getElementById(previewId);
+                const previewImage = document.getElementById(previewImageId);
+                const fileInfo = document.getElementById(fileInfoId);
+                const downloadBtn = document.getElementById(fileInputId.replace('file-input', 'download-btn'));
+                
+                // Set accept attribute if provided
+                if (acceptTypes) {
+                    fileInput.accept = acceptTypes;
+                }
+                
+                // Click on upload box or button to trigger file input
+                uploadBox.addEventListener('click', function() {
+                    fileInput.click();
+                });
+                
+                uploadBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    fileInput.click();
+                });
+                
+                // Handle file selection
+                fileInput.addEventListener('change', function() {
+                    if (this.files && this.files[0]) {
+                        const file = this.files[0];
+                        const reader = new FileReader();
+                        
+                        reader.onload = function(e) {
+                            previewImage.src = e.target.result;
+                            previewSection.style.display = 'block';
+                            uploadBox.classList.add('active');
+                            
+                            // Display file info
+                            const fileSize = (file.size / 1024).toFixed(2);
+                            fileInfo.innerHTML = `
+                                <p><strong>File Name:</strong> ${file.name}</p>
+                                <p><strong>File Size:</strong> ${fileSize} KB</p>
+                                <p><strong>File Type:</strong> ${file.type}</p>
+                            `;
+                            
+                            // Hide download button until conversion
+                            downloadBtn.style.display = 'none';
+                        };
+                        
+                        reader.readAsDataURL(file);
+                    }
+                });
+                
+                // Drag and drop functionality
+                uploadBox.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    uploadBox.classList.add('active');
+                });
+                
+                uploadBox.addEventListener('dragleave', function() {
+                    uploadBox.classList.remove('active');
+                });
+                
+                uploadBox.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    uploadBox.classList.remove('active');
+                    
+                    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                        fileInput.files = e.dataTransfer.files;
+                        const file = fileInput.files[0];
+                        const reader = new FileReader();
+                        
+                        reader.onload = function(e) {
+                            previewImage.src = e.target.result;
+                            previewSection.style.display = 'block';
+                            
+                            // Display file info
+                            const fileSize = (file.size / 1024).toFixed(2);
+                            fileInfo.innerHTML = `
+                                <p><strong>File Name:</strong> ${file.name}</p>
+                                <p><strong>File Size:</strong> ${fileSize} KB</p>
+                                <p><strong>File Type:</strong> ${file.type}</p>
+                            `;
+                            
+                            // Hide download button until conversion
+                            downloadBtn.style.display = 'none';
+                        };
+                        
+                        reader.readAsDataURL(file);
+                    }
+                });
+                
+                return {
+                    fileInput,
+                    previewImage,
+                    downloadBtn
+                };
+            }
+            
+            // PDF Upload Functionality
+            function setupPDFUpload() {
+                const uploadBox = document.getElementById('pdf-upload-box');
+                const fileInput = document.getElementById('pdf-file-input');
+                const uploadBtn = document.getElementById('pdf-upload-btn');
+                const previewSection = document.getElementById('pdf-preview');
+                const previewContainer = document.getElementById('pdf-preview-container');
+                const fileInfo = document.getElementById('pdf-file-info');
+                const downloadBtn = document.getElementById('pdf-download-btn');
+                const pageSelector = document.getElementById('page-selector');
+                const pageButtons = document.getElementById('page-buttons');
+                
+                let pdfDoc = null;
+                let selectedPages = new Set();
+                
+                // Click on upload box or button to trigger file input
+                uploadBox.addEventListener('click', function() {
+                    fileInput.click();
+                });
+                
+                uploadBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    fileInput.click();
+                });
+                
+                // Handle file selection
+                fileInput.addEventListener('change', function() {
+                    if (this.files && this.files[0]) {
+                        const file = this.files[0];
+                        
+                        // Display file info
+                        const fileSize = (file.size / 1024).toFixed(2);
+                        fileInfo.innerHTML = `
+                            <p><strong>File Name:</strong> ${file.name}</p>
+                            <p><strong>File Size:</strong> ${fileSize} KB</p>
+                            <p><strong>File Type:</strong> ${file.type}</p>
+                        `;
+                        
+                        // Load PDF
+                        const fileReader = new FileReader();
+                        fileReader.onload = function() {
+                            const typedarray = new Uint8Array(this.result);
+                            
+                            pdfjsLib.getDocument(typedarray).promise.then(function(pdf) {
+                                pdfDoc = pdf;
+                                previewSection.style.display = 'block';
+                                uploadBox.classList.add('active');
+                                
+                                // Clear previous preview
+                                previewContainer.innerHTML = '';
+                                pageButtons.innerHTML = '';
+                                selectedPages.clear();
+                                
+                                // Create page buttons
+                                for (let i = 1; i <= pdf.numPages; i++) {
+                                    const pageBtn = document.createElement('button');
+                                    pageBtn.className = 'page-btn';
+                                    pageBtn.textContent = i;
+                                    pageBtn.dataset.page = i;
+                                    
+                                    pageBtn.addEventListener('click', function() {
+                                        this.classList.toggle('active');
+                                        if (this.classList.contains('active')) {
+                                            selectedPages.add(parseInt(this.dataset.page));
+                                        } else {
+                                            selectedPages.delete(parseInt(this.dataset.page));
+                                        }
+                                    });
+                                    
+                                    pageButtons.appendChild(pageBtn);
+                                }
+                                
+                                // Show page selector
+                                pageSelector.style.display = 'block';
+                                
+                                // Render first page for preview
+                                renderPage(1);
+                                
+                            }).catch(function(error) {
+                                alert('Error loading PDF: ' + error.message);
+                            });
+                        };
+                        
+                        fileReader.readAsArrayBuffer(file);
+                    }
+                });
+                
+                // Render PDF page
+                function renderPage(pageNumber) {
+                    pdfDoc.getPage(pageNumber).then(function(page) {
+                        const viewport = page.getViewport({ scale: 1.5 });
+                        const canvas = document.createElement('canvas');
+                        const context = canvas.getContext('2d');
+                        canvas.height = viewport.height;
+                        canvas.width = viewport.width;
+                        
+                        const renderContext = {
+                            canvasContext: context,
+                            viewport: viewport
+                        };
+                        
+                        page.render(renderContext).promise.then(function() {
+                            const pageContainer = document.createElement('div');
+                            pageContainer.className = 'pdf-preview-page';
+                            
+                            const pageLabel = document.createElement('div');
+                            pageLabel.style.padding = '0.5rem';
+                            pageLabel.style.background = '#f8f9fa';
+                            pageLabel.style.borderBottom = '1px solid #e0e0e0';
+                            pageLabel.textContent = `Page ${pageNumber}`;
+                            
+                            pageContainer.appendChild(pageLabel);
+                            pageContainer.appendChild(canvas);
+                            previewContainer.appendChild(pageContainer);
+                        });
+                    });
+                }
+                
+                // Drag and drop functionality
+                uploadBox.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    uploadBox.classList.add('active');
+                });
+                
+                uploadBox.addEventListener('dragleave', function() {
+                    uploadBox.classList.remove('active');
+                });
+                
+                uploadBox.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    uploadBox.classList.remove('active');
+                    
+                    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                        fileInput.files = e.dataTransfer.files;
+                        const event = new Event('change');
+                        fileInput.dispatchEvent(event);
+                    }
+                });
+                
+                return {
+                    fileInput,
+                    downloadBtn,
+                    getSelectedPages: () => selectedPages,
+                    getPDFDoc: () => pdfDoc
+                };
+            }
+            
+            // Image Compressor Setup
+            function setupImageCompressor() {
+                const uploadBox = document.getElementById('compressor-upload-box');
+                const fileInput = document.getElementById('compressor-file-input');
+                const uploadBtn = document.getElementById('compressor-upload-btn');
+                const previewSection = document.getElementById('compressor-preview');
+                const previewImage = document.getElementById('compressor-preview-image');
+                const fileInfo = document.getElementById('compressor-file-info');
+                const downloadBtn = document.getElementById('compressor-download-btn');
+                const originalSizeEl = document.getElementById('original-size');
+                const compressedSizeEl = document.getElementById('compressed-size');
+                const reductionPercentEl = document.getElementById('reduction-percent');
+                const statsContainer = document.getElementById('compressor-stats');
+                
+                let originalFileSize = 0;
+                let originalImage = new Image();
+                
+                // Click on upload box or button to trigger file input
+                uploadBox.addEventListener('click', function() {
+                    fileInput.click();
+                });
+                
+                uploadBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    fileInput.click();
+                });
+                
+                // Handle file selection
+                fileInput.addEventListener('change', function() {
+                    if (this.files && this.files[0]) {
+                        const file = this.files[0];
+                        const reader = new FileReader();
+                        
+                        originalFileSize = file.size;
+                        
+                        reader.onload = function(e) {
+                            originalImage.src = e.target.result;
+                            originalImage.onload = function() {
+                                previewImage.src = e.target.result;
+                                previewSection.style.display = 'block';
+                                uploadBox.classList.add('active');
+                                statsContainer.style.display = 'flex';
+                                
+                                // Display file info
+                                const fileSize = (file.size / 1024).toFixed(2);
+                                originalSizeEl.textContent = `${fileSize} KB`;
+                                fileInfo.innerHTML = `
+                                    <p><strong>File Name:</strong> ${file.name}</p>
+                                    <p><strong>Original Size:</strong> ${fileSize} KB</p>
+                                    <p><strong>File Type:</strong> ${file.type}</p>
+                                    <p><strong>Dimensions:</strong> ${originalImage.width} x ${originalImage.height} px</p>
+                                `;
+                                
+                                // Reset compressed stats
+                                compressedSizeEl.textContent = '0 KB';
+                                reductionPercentEl.textContent = '0% smaller';
+                                
+                                // Hide download button until compression
+                                downloadBtn.style.display = 'none';
+                            };
+                        };
+                        
+                        reader.readAsDataURL(file);
+                    }
+                });
+                
+                // Drag and drop functionality
+                uploadBox.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    uploadBox.classList.add('active');
+                });
+                
+                uploadBox.addEventListener('dragleave', function() {
+                    uploadBox.classList.remove('active');
+                });
+                
+                uploadBox.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    uploadBox.classList.remove('active');
+                    
+                    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                        fileInput.files = e.dataTransfer.files;
+                        const event = new Event('change');
+                        fileInput.dispatchEvent(event);
+                    }
+                });
+                
+                return {
+                    fileInput,
+                    downloadBtn,
+                    originalImage,
+                    originalFileSize
+                };
+            }
+            
+            // Image Resizer Setup
+            function setupImageResizer() {
+                const uploadBox = document.getElementById('resizer-upload-box');
+                const fileInput = document.getElementById('resizer-file-input');
+                const uploadBtn = document.getElementById('resizer-upload-btn');
+                const previewSection = document.getElementById('resizer-preview');
+                const previewImage = document.getElementById('resizer-preview-image');
+                const fileInfo = document.getElementById('resizer-file-info');
+                const downloadBtn = document.getElementById('resizer-download-btn');
+                const widthInput = document.getElementById('resizer-width');
+                const heightInput = document.getElementById('resizer-height');
+                const lockAspectRatio = document.getElementById('lock-aspect-ratio');
+                const originalDimensionsEl = document.getElementById('original-dimensions');
+                const newDimensionsEl = document.getElementById('new-dimensions');
+                
+                let originalImage = new Image();
+                let originalWidth = 0;
+                let originalHeight = 0;
+                let aspectRatio = 1;
+                
+                // Click on upload box or button to trigger file input
+                uploadBox.addEventListener('click', function() {
+                    fileInput.click();
+                });
+                
+                uploadBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    fileInput.click();
+                });
+                
+                // Handle file selection
+                fileInput.addEventListener('change', function() {
+                    if (this.files && this.files[0]) {
+                        const file = this.files[0];
+                        const reader = new FileReader();
+                        
+                        reader.onload = function(e) {
+                            originalImage.src = e.target.result;
+                            originalImage.onload = function() {
+                                previewImage.src = e.target.result;
+                                previewSection.style.display = 'block';
+                                uploadBox.classList.add('active');
+                                
+                                // Store original dimensions
+                                originalWidth = originalImage.width;
+                                originalHeight = originalImage.height;
+                                aspectRatio = originalWidth / originalHeight;
+                                
+                                // Update dimension inputs
+                                widthInput.value = originalWidth;
+                                heightInput.value = originalHeight;
+                                
+                                // Update dimension displays
+                                originalDimensionsEl.textContent = `${originalWidth} x ${originalHeight} px`;
+                                newDimensionsEl.textContent = `${originalWidth} x ${originalHeight} px`;
+                                
+                                // Display file info
+                                const fileSize = (file.size / 1024).toFixed(2);
+                                fileInfo.innerHTML = `
+                                    <p><strong>File Name:</strong> ${file.name}</p>
+                                    <p><strong>File Size:</strong> ${fileSize} KB</p>
+                                    <p><strong>File Type:</strong> ${file.type}</p>
+                                    <p><strong>Original Dimensions:</strong> ${originalWidth} x ${originalHeight} px</p>
+                                `;
+                                
+                                // Hide download button until resize
+                                downloadBtn.style.display = 'none';
+                            };
+                        };
+                        
+                        reader.readAsDataURL(file);
+                    }
+                });
+                
+                // Aspect ratio lock functionality
+                lockAspectRatio.addEventListener('change', function() {
+                    if (this.checked && originalWidth > 0 && originalHeight > 0) {
+                        aspectRatio = originalWidth / originalHeight;
+                        heightInput.value = Math.round(widthInput.value / aspectRatio);
+                        updateNewDimensions();
+                    }
+                });
+                
+                // Update height when width changes (if aspect ratio is locked)
+                widthInput.addEventListener('input', function() {
+                    if (lockAspectRatio.checked && aspectRatio > 0) {
+                        heightInput.value = Math.round(this.value / aspectRatio);
+                    }
+                    updateNewDimensions();
+                });
+                
+                // Update width when height changes (if aspect ratio is locked)
+                heightInput.addEventListener('input', function() {
+                    if (lockAspectRatio.checked && aspectRatio > 0) {
+                        widthInput.value = Math.round(this.value * aspectRatio);
+                    }
+                    updateNewDimensions();
+                });
+                
+                function updateNewDimensions() {
+                    newDimensionsEl.textContent = `${widthInput.value} x ${heightInput.value} px`;
+                }
+                
+                // Drag and drop functionality
+                uploadBox.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    uploadBox.classList.add('active');
+                });
+                
+                uploadBox.addEventListener('dragleave', function() {
+                    uploadBox.classList.remove('active');
+                });
+                
+                uploadBox.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    uploadBox.classList.remove('active');
+                    
+                    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                        fileInput.files = e.dataTransfer.files;
+                        const event = new Event('change');
+                        fileInput.dispatchEvent(event);
+                    }
+                });
+                
+                return {
+                    fileInput,
+                    downloadBtn,
+                    originalImage,
+                    widthInput,
+                    heightInput
+                };
+            }
+            
+            // Set up file upload for all converters
+            const pngUpload = setupFileUpload('png-upload-box', 'png-file-input', 'png-upload-btn', 'png-preview', 'png-preview-image', 'png-file-info', '.png');
+            const webpUpload = setupFileUpload('webp-upload-box', 'webp-file-input', 'webp-upload-btn', 'webp-preview', 'webp-preview-image', 'webp-file-info', '.webp');
+            const pdfUpload = setupPDFUpload();
+            const jpegUpload = setupFileUpload('jpeg-upload-box', 'jpeg-file-input', 'jpeg-upload-btn', 'jpeg-preview', 'jpeg-preview-image', 'jpeg-file-info', '.jpeg,.jpg');
+            const gifUpload = setupFileUpload('gif-upload-box', 'gif-file-input', 'gif-upload-btn', 'gif-preview', 'gif-preview-image', 'gif-file-info', '.gif');
+            const compressorUpload = setupImageCompressor();
+            const resizerUpload = setupImageResizer();
+            
+            // Convert button functionality for regular images
+            const convertButtons = document.querySelectorAll('.convert-btn:not(#pdf-convert-btn):not(#compressor-convert-btn):not(#resizer-convert-btn)');
+            
+            convertButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const converterType = this.id.split('-')[0];
+                    let upload, qualitySlider;
+                    
+                    switch(converterType) {
+                        case 'png':
+                            upload = pngUpload;
+                            qualitySlider = document.getElementById('png-quality');
+                            break;
+                        case 'webp':
+                            upload = webpUpload;
+                            qualitySlider = document.getElementById('webp-quality');
+                            break;
+                        case 'jpeg':
+                            upload = jpegUpload;
+                            qualitySlider = document.getElementById('jpeg-quality');
+                            break;
+                        case 'gif':
+                            upload = gifUpload;
+                            qualitySlider = document.getElementById('gif-quality');
+                            break;
+                    }
+                    
+                    if (upload.fileInput.files.length === 0) {
+                        alert(`Please select a ${converterType.toUpperCase()} file first!`);
+                        return;
+                    }
+                    
+                    const quality = parseInt(qualitySlider.value) / 100;
+                    convertImage(upload.fileInput.files[0], 'image/jpeg', quality, upload.downloadBtn);
+                });
+            });
+            
+            // Image Compressor Convert button functionality
+            document.getElementById('compressor-convert-btn').addEventListener('click', function() {
+                const qualitySlider = document.getElementById('compressor-quality');
+                const quality = parseInt(qualitySlider.value) / 100;
+                const originalSizeEl = document.getElementById('original-size');
+                const compressedSizeEl = document.getElementById('compressed-size');
+                const reductionPercentEl = document.getElementById('reduction-percent');
+                
+                if (!compressorUpload.originalImage.src) {
+                    alert('Please select an image first!');
+                    return;
+                }
+                
+                // Create canvas
+                const canvas = document.createElement('canvas');
+                canvas.width = compressorUpload.originalImage.width;
+                canvas.height = compressorUpload.originalImage.height;
+                
+                // Draw image on canvas
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(compressorUpload.originalImage, 0, 0);
+                
+                // Convert to desired format with compression
+                const dataURL = canvas.toDataURL('image/jpeg', quality);
+                
+                // Calculate compressed size
+                const base64Length = dataURL.length - 'data:image/jpeg;base64,'.length;
+                const compressedSize = Math.round(base64Length * 0.75) / 1024; // Convert from bytes to KB
+                
+                // Update stats
+                const originalSizeKB = parseFloat(originalSizeEl.textContent);
+                const reduction = ((originalSizeKB - compressedSize) / originalSizeKB * 100).toFixed(1);
+                
+                compressedSizeEl.textContent = `${compressedSize.toFixed(2)} KB`;
+                reductionPercentEl.textContent = `${reduction}% smaller`;
+                
+                // Create download link
+                compressorUpload.downloadBtn.href = dataURL;
+                compressorUpload.downloadBtn.download = compressorUpload.fileInput.files[0].name.replace(/\.[^/.]+$/, "") + '_compressed.jpg';
+                compressorUpload.downloadBtn.style.display = 'block';
+            });
+            
+            // Image Resizer Convert button functionality
+            document.getElementById('resizer-convert-btn').addEventListener('click', function() {
+                const qualitySlider = document.getElementById('resizer-quality');
+                const quality = parseInt(qualitySlider.value) / 100;
+                
+                if (!resizerUpload.originalImage.src) {
+                    alert('Please select an image first!');
+                    return;
+                }
+                
+                const newWidth = parseInt(resizerUpload.widthInput.value);
+                const newHeight = parseInt(resizerUpload.heightInput.value);
+                
+                if (newWidth <= 0 || newHeight <= 0) {
+                    alert('Please enter valid dimensions!');
+                    return;
+                }
+                
+                // Create canvas with new dimensions
+                const canvas = document.createElement('canvas');
+                canvas.width = newWidth;
+                canvas.height = newHeight;
+                
+                // Draw image on canvas with new dimensions
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(resizerUpload.originalImage, 0, 0, newWidth, newHeight);
+                
+                // Convert to desired format with quality
+                const dataURL = canvas.toDataURL('image/jpeg', quality);
+                
+                // Create download link
+                resizerUpload.downloadBtn.href = dataURL;
+                resizerUpload.downloadBtn.download = resizerUpload.fileInput.files[0].name.replace(/\.[^/.]+$/, "") + `_${newWidth}x${newHeight}.jpg`;
+                resizerUpload.downloadBtn.style.display = 'block';
+            });
+            
+            // PDF Convert button functionality
+            document.getElementById('pdf-convert-btn').addEventListener('click', function() {
+                const qualitySlider = document.getElementById('pdf-quality');
+                const quality = parseInt(qualitySlider.value) / 100;
+                
+                if (!pdfUpload.getPDFDoc()) {
+                    alert('Please select a PDF file first!');
+                    return;
+                }
+                
+                const selectedPages = pdfUpload.getSelectedPages();
+                if (selectedPages.size === 0) {
+                    alert('Please select at least one page to convert!');
+                    return;
+                }
+                
+                convertPDFToJPG(pdfUpload.getPDFDoc(), Array.from(selectedPages), quality, pdfUpload.downloadBtn);
+            });
+            
+            // Image conversion function
+            function convertImage(file, outputFormat, quality, downloadBtn) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        // Create canvas
+                        const canvas = document.createElement('canvas');
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        
+                        // Draw image on canvas
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0);
+                        
+                        // Convert to desired format
+                        const dataURL = canvas.toDataURL(outputFormat, quality);
+                        
+                        // Create download link
+                        downloadBtn.href = dataURL;
+                        downloadBtn.download = file.name.replace(/\.[^/.]+$/, "") + '.jpg';
+                        downloadBtn.style.display = 'block';
+                    };
+                    img.src = e.target.result;
+                };
+                
+                reader.readAsDataURL(file);
+            }
+            
+            // PDF to JPG conversion function
+            function convertPDFToJPG(pdfDoc, pageNumbers, quality, downloadBtn) {
+                // For simplicity, we'll convert only the first selected page
+                const pageNumber = pageNumbers[0];
+                
+                pdfDoc.getPage(pageNumber).then(function(page) {
+                    const viewport = page.getViewport({ scale: 2.0 }); // Higher scale for better quality
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+                    
+                    const renderContext = {
+                        canvasContext: context,
+                        viewport: viewport
+                    };
+                    
+                    page.render(renderContext).promise.then(function() {
+                        // Convert canvas to JPG
+                        const dataURL = canvas.toDataURL('image/jpeg', quality);
+                        
+                        // Create download link
+                        downloadBtn.href = dataURL;
+                        downloadBtn.download = `page-${pageNumber}.jpg`;
+                        downloadBtn.style.display = 'block';
+                    });
+                });
+            }
+        });
+    </script>
+    <div style="width:100%; display:flex; justify-content:center; margin:20px 0;">
+        <script type="text/javascript">
+            atOptions = {
+                'key' : '799617d49397b29a22aa50f04aef89d2',
+                'format' : 'iframe',
+                'height' : 60,
+                'width' : 468,
+                'params' : {}
+            };
+        </script>
+        <script type="text/javascript" src="//www.highperformanceformat.com/799617d49397b29a22aa50f04aef89d2/invoke.js"></script>
+    </div>
+</body>
+</html>
